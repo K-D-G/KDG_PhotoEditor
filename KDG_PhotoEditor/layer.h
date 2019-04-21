@@ -18,10 +18,10 @@ namespace KDG_PhotoEditor{
 
 		inline std::vector<std::vector<unsigned int>> get_data(){return data;}
 
-		void rotate_layer(float degrees);
-		void scale_layer(float scale_factor);
-		void translate_layer(int xmov, int ymov);
-		void reflect_layer(std::string line); //Line meaning something in the form y=mx+c where they are floats
+		void rotate_layer(float degrees, int centrex, int centrey);
+		void scale_layer(float scale_factor, int centrex, int centrey);
+		void translate_layer(int xmov, int ymov, bool make_transparent);
+		void reflect_layer(char var_name, int val, bool left_or_top); //Line meaning something like x=4 or y=2, the bool means are those sides the ones being reflected
 
 		void blur_circle(int x, int y, int r);
 		void blur_rectangle(int x, int y, int w, int h);

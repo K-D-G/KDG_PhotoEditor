@@ -23,18 +23,88 @@ Layer::~Layer(){
 
 }
 
-void Layer::rotate_layer(float degrees){
+void Layer::rotate_layer(float degrees, int centrex, int centrey){
+	//Loop through all of the pixels
+	for(int x=0; x<width; x++){
+		for(int y=0; y<height; y++){
+			//"Translate" to the centre of origin
+			//Then use the equations. 
+			//x_new=y*sin(theta)+x*cos(theta)
+			//y_new=y*cos(theta)-x*sin(theta)
+			//Where theta is a clockwise rotation
+			int x_new=(y-centrey)*sin(degrees)+(x-centrex)*cos(degrees);
+			int y_new=(y-centrey)*cos(degrees)-(x-centrex)*sin(degrees);
+			try{
+				data[x_new][y_new]=data[x][y];
+			}catch(...){
+			
+			}
+		}
+	}
+}
+void Layer::scale_layer(float scale_factor, int centrex, int centrey){
 
 }
-void Layer::scale_layer(float scale_factor){
 
+void Layer::translate_layer(int xmov, int ymov, bool make_transparent){
+	std::vector<std::vector<unsigned int>> temp=data;
+	for(int x=0; x<width; x++){
+		for(int y=0; y<height; y++){
+			try{
+				temp[x][y]=data[x-xmov][y-ymov];
+			}catch(...){
+				if(make_transparent){
+					temp[x][y]=0;
+				}else{
+					temp[x][y]=2147483647;
+				}
+			}
+		}
+	}
 }
-void Layer::translate_layer(int xmov, int ymov){
-
-}
-//Line meaning something in the form y=mx+c where they are floats
-void Layer::reflect_layer(string line){
-
+//Line meaning something like x=4 or y=2
+void Layer::reflect_layer(char var_name, int val, bool left_or_top){
+	//Find the equation in ax+by+c=0 form
+	int first_point[2]={val, 4};
+	int second_point[2]={val, 2};
+	int a=first_point[1]-second_point[1];
+	int b=second_point[0]-first_point[0];
+	int c=(first_point[0]*second_point[1])-(second_point[0]*first_point[1]);
+	if(var_name==(char)"x"){	
+		//Loop through all of the pixels on the correct side of the line
+		if(left_or_top){
+			for(int x=0; x<val; x++){
+				for(int y=0; y<height; y++){
+					//Find the distance between the point and the line then add the distance to the opposite side of the line and copy the colour
+					int distance=abs(a*x+b*y+c)/sqrt(a*a+b*b);
+					data[x+distance*2][y]=data[x][y];
+				}
+			}
+		}else{
+			for(int x=val; x<width; x++){
+				for(int y=0; y<height; y++){
+					int distance=abs(a*x+b*y+c)/sqrt(a*a+b*b);
+					data[x-distance*2][y]=data[x][y];
+				}
+			}
+		}
+	}else if(var_name==(char)"y"){
+		if(left_or_top){
+			for(int y=0; y<val; y++){
+				for(int x=0; x<width; x++){
+					int distance=abs(a*x+b*y+c)/sqrt(a*a+b*b);
+					data[x][y+distance*2]=data[x][y];
+				}
+			}
+		}else{
+			for(int y=val; y<height; y++){
+				for(int x=0; x<width; x++){
+					int distance=abs(a*x+b*y+c)/sqrt(a*a+b*b);
+					data[x][y-distance*2]=data[x][y];
+				}
+			}
+		}
+	}
 } 
 
 void Layer::blur_circle(int x, int y, int r){
@@ -54,8 +124,8 @@ void Layer::add_text(string text, Font font, int x, int y){
 }
 
 void Layer::colour_filter(char r, char g, char b, char a){
-	for(int i=0; i<width; i++){
-		for(int j=0; j<height; j++){
+	for(int x=0; x<width; x++){
+		for(int y=0; y<height; y++){
 			char rcomponent=r*((char)data[x][y]>>24);
 			char gcomponent=g*(((char)data[x][y]<<8)>>24);
 			char bcomponent=b*(((char)data[x][y]<<16)>>24);

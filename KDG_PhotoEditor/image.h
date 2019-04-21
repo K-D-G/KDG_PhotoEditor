@@ -14,7 +14,7 @@ namespace KDG_PhotoEditor{
 		std::vector<Layer> layers;
 
 		std::stack<std::string> undo_stack; //The string in here tells us what to do (the opposite of what was done previously) so we just analyse and run the function. Using scanf
-		std::stack<std::string> redo_stack;
+		std::stack<std::string> redo_stack; //Also add an option to the functions that asks if they should be recorded
 
 		std::string image_path;
 	public:
