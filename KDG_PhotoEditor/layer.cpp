@@ -17,7 +17,7 @@ Layer::Layer(string file_path){
 	original_data=data;
 }
 Layer::Layer(){
-
+	
 }
 Layer::~Layer(){
 
@@ -35,15 +35,64 @@ void Layer::rotate_layer(float degrees, int centrex, int centrey){
 			int x_new=(y-centrey)*sin(degrees)+(x-centrex)*cos(degrees);
 			int y_new=(y-centrey)*cos(degrees)-(x-centrex)*sin(degrees);
 			try{
-				data[x_new][y_new]=data[x][y];
+				//Translate back when assigning the values
+				data[x_new+centrex][y_new+centrey]=data[x][y];
 			}catch(...){
 			
 			}
 		}
 	}
 }
-void Layer::scale_layer(float scale_factor, int centrex, int centrey){
+void Layer::scale_layer(float sx, float sy, string type){
+	int new_width=width*sx;
+	int new_height=height*sy;
+	vector<vector<unsigned int>> new_data;
+	new_data.reserve(new_width);
+	for(int i=0; i<new_width; i++){
+		new_data[i].reserve(new_height);
+	}
 
+	if(type=="linear_interpolation"){
+		//Linear interpolation?
+		for(int x=0; x<width; x++){
+			for(int y=0; y<height; y++){
+				new_data[x*new_width][y*new_height]=data[x][y];
+				for(int i=1; i<sy; i++){
+					new_data[x*new_width][y*new_height+i]=(((sy-i)/sy)*data[x][y])+((i/sy)*data[x][y]);
+				}
+			}
+		}
+
+		for(int y=0; y<new_height; y++){
+			for(int x=0; x<width; x++){
+				new_data[x*new_width][y*new_height]=data[x][y/sy];
+				for(int i=1; i<sx; i++){
+					new_data[x*new_width+i][y*new_height]=(((sx-i)/sx)*data[x][y/sy])+((i/sx)*data[x][y/sy]);
+				}
+			}
+		}
+
+	}else if(type=="nearest_neighbour"){
+		//Loop through all the pixels in the original image
+		for(int x=0; x<width; x++){
+			for(int y=0; y<height; y++){
+				for(int i=0; i<sy; i++){
+					new_data[x*new_width][y*new_height+i]=data[x][y];
+				}
+			}
+		}
+
+		for(int y=0; y<new_height; y++){
+			for(int x=0; x<width; x++){
+				for(int i=0; i<sx; i++){
+					new_data[x*new_width+i][y*new_height]=data[x][y/sy];
+				}
+			}
+		}
+	}
+	width=new_width;
+	height=new_height;
+	data=new_data;
 }
 
 void Layer::translate_layer(int xmov, int ymov, bool make_transparent){
@@ -137,5 +186,21 @@ void Layer::colour_filter(char r, char g, char b, char a){
 }
 
 void Layer::crop(int lmi, int rmi, int tmi, int bmi){
+	int new_width=width-(lmi+rmi);
+	int new_height=height-(tmi+bmi);
+	vector<vector<unsigned int>> new_data;
+	new_data.reserve(new_width);
+	for(int i=0; i<new_width; i++){
+		new_data[i].reserve(new_height);
+	}
 
+	for(int x=lmi; x<=rmi; x++){
+		for(int y=tmi; y<=bmi; y++){
+			new_data[x-lmi][y-tmi]=data[x][y];
+		}
+	}
+
+	width=new_width;
+	height=new_height;
+	data=new_data;
 }
