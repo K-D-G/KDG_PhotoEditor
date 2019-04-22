@@ -2,7 +2,9 @@
 #include "font.h"
 #include <vector>
 #include <string>
+#include <cmath>
 #include <stb_image.h>
+#include <wx/math.h>
 
 namespace KDG_PhotoEditor{
 	class Layer{

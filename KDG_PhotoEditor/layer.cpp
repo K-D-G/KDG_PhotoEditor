@@ -156,8 +156,29 @@ void Layer::reflect_layer(char var_name, int val, bool left_or_top){
 	}
 } 
 
+//Using Gaussian blur. I am not sure but I think you create the kernel and multiply all the values
 void Layer::blur_circle(int x, int y, int r){
+	//Generating the kernel
+	//Help from:https://www.geeksforgeeks.org/gaussian-filter-generation-c/
+	float GKernel[5][5];
+	float sigma=1.0;
+	float r, s=2.0*sigma*sigma;
+	float sum=0.0;
+	for(int x=-2; x<=2; x++){
+		for(int y=-2; y<=2; y++){
+			r=sqrt(x*x+y*y);
+			GKernel[x+2][y+2]=(exp(-(r*r)/s))/(M_PI*s);
+			sum+=GKernel[x+2][y+2];
+		}
+	}
+	
+	for(int i=0; i<5; ++i){
+		for(int j=0; j<5; ++j){
+			GKernel[i][j]/=sum;
+		}
+	}
 
+	//Use the kernel
 }
 void Layer::blur_rectangle(int x, int y, int w, int h){
 
