@@ -23,7 +23,7 @@ Layer::~Layer(){
 
 }
 
-void Layer::rotate_layer(float degrees, int centrex, int centrey){
+void Layer::rotate(float degrees, int centrex, int centrey){
 	//Loop through all of the pixels
 	for(int x=0; x<width; x++){
 		for(int y=0; y<height; y++){
@@ -43,7 +43,7 @@ void Layer::rotate_layer(float degrees, int centrex, int centrey){
 		}
 	}
 }
-void Layer::scale_layer(float sx, float sy, string type){
+void Layer::scale(float sx, float sy, string type){
 	int new_width=width*sx;
 	int new_height=height*sy;
 	vector<vector<unsigned int>> new_data;
@@ -95,7 +95,7 @@ void Layer::scale_layer(float sx, float sy, string type){
 	data=new_data;
 }
 
-void Layer::translate_layer(int xmov, int ymov, bool make_transparent){
+void Layer::translate(int xmov, int ymov, bool make_transparent){
 	std::vector<std::vector<unsigned int>> temp=data;
 	for(int x=0; x<width; x++){
 		for(int y=0; y<height; y++){
@@ -112,7 +112,7 @@ void Layer::translate_layer(int xmov, int ymov, bool make_transparent){
 	}
 }
 //Line meaning something like x=4 or y=2
-void Layer::reflect_layer(char var_name, int val, bool left_or_top){
+void Layer::reflect(char var_name, int val, bool left_or_top){
 	//Find the equation in ax+by+c=0 form
 	int first_point[2]={val, 4};
 	int second_point[2]={val, 2};
@@ -156,32 +156,51 @@ void Layer::reflect_layer(char var_name, int val, bool left_or_top){
 	}
 } 
 
-//Using Gaussian blur. I am not sure but I think you create the kernel and multiply all the values
-void Layer::blur_circle(int x, int y, int r){
-	//Generating the kernel
-	//Help from:https://www.geeksforgeeks.org/gaussian-filter-generation-c/
-	float GKernel[5][5];
-	float sigma=1.0;
-	float r, s=2.0*sigma*sigma;
-	float sum=0.0;
-	for(int x=-2; x<=2; x++){
-		for(int y=-2; y<=2; y++){
-			r=sqrt(x*x+y*y);
-			GKernel[x+2][y+2]=(exp(-(r*r)/s))/(M_PI*s);
-			sum+=GKernel[x+2][y+2];
-		}
-	}
-	
-	for(int i=0; i<5; ++i){
-		for(int j=0; j<5; ++j){
-			GKernel[i][j]/=sum;
+//Gaussian blur. Implementation using the theory in the computerphile lecture
+void Layer::blur(int topleftx, int toplefty, int w, int h){
+	int kernel[3][3]={{1, 2, 1}, {2, 4, 2}, {1, 2, 1}};
+	int total_kernel_value=0;
+
+	for(int i=0; i<3; i++){
+		for(int j=0; j<3; j++){
+			total_kernel_value+=kernel[i][j];
 		}
 	}
 
-	//Use the kernel
-}
-void Layer::blur_rectangle(int x, int y, int w, int h){
+	vector<vector<unsigned int>> new_data;
+	new_data.reserve(width);
+	for(int i=0; i<width; i++){
+		new_data[i].reserve(height);
+	}
 
+	for(int x=topleftx; x<topleftx+w; x++){
+		for(int y=toplefty; y<toplefty+h; y++){
+			int value=0;
+			int kernel_value=0;
+			for(int i=0; i<3; i++){
+				for(int j=0; j<3; j++){
+					try{
+						//Not sure about the subtraction. Tried to translate to the top left corner and then add i and j
+						value+=(data[x-1+i][y-1+j]*kernel[i][j]);
+						kernel_value+=kernel[i][j];
+					}catch(...){
+						
+					}	
+				}
+			}
+			new_data[x][y]=(int)value/kernel_value;
+		}
+	}
+
+	for(int x=0; x<width; x++){
+		for(int y=0; y<height; y++){
+			if(!new_data[x][y]){
+				new_data[x][y]=data[x][y];
+			}
+		}
+	}
+
+	data=new_data;
 }
 
 void Layer::set_pixel(int x, int y, char r, char g, char b, char a){

@@ -20,20 +20,14 @@ namespace KDG_PhotoEditor{
 
 		inline std::vector<std::vector<unsigned int>> get_data(){return data;}
 
-		void rotate_layer(float degrees, int centrex, int centrey);
-		void scale_layer(float sx, float sy, std::string type);
-		void translate_layer(int xmov, int ymov, bool make_transparent);
-		void reflect_layer(char var_name, int val, bool left_or_top); //Line meaning something like x=4 or y=2, the bool means are those sides the ones being reflected
-
-		void blur_circle(int x, int y, int r);
-		void blur_rectangle(int x, int y, int w, int h);
-
+		void rotate(float degrees, int centrex, int centrey);
+		void scale(float sx, float sy, std::string type);
+		void translate(int xmov, int ymov, bool make_transparent);
+		void reflect(char var_name, int val, bool left_or_top); //Line meaning something like x=4 or y=2, the bool means are those sides the ones being reflected
+		void blur(int topleftx, int toplefty, int w, int h);
 		void set_pixel(int x, int y, char r, char g, char b, char a);
-
 		void add_text(std::string text, Font font, int x, int y); //X and Y is the top left coord of the text
-
 		void colour_filter(char r, char g, char b, char a); //Remember each pixel will be multiplied with the values
-
 		void crop(int lmi, int rmi, int tmi, int bmi);
 	};
 }
