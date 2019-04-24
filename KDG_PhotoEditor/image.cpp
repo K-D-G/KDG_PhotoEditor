@@ -4,16 +4,81 @@ using namespace KDG_PhotoEditor;
 using namespace std;
 
 Image::Image(string path){
-	layers.emplace_back(path);
+	if(path.substr(path.rfind(".")+1, 3)=="kgp"){
+		struct stat results;
+		int size;
+		if(stat(path.c_str(), &results)==0){
+			size=results.st_size;
+		}else{
+			return;
+		}
+
+		ifstream file(path, ios::in|ios::binary);
+		char* buffer=new char[size];
+		file.read(buffer, size);
+		if(!file){
+			return;
+		}
+		string str_buffer=buffer;
+
+		meta_data.name_length=(buffer[0]<<24)|(buffer[1]<<16)|(buffer[2]<<8)|buffer[3];
+		meta_data.name=(char*)((str_buffer.substr(4, meta_data.name_length).c_str()));
+		meta_data.width=(buffer[4+meta_data.name_length]<<24)|(buffer[4+meta_data.name_length+1]<<16)|(buffer[4+meta_data.name_length+2]<<8)|(buffer[4+meta_data.name_length+3]);
+		meta_data.height=(buffer[4+meta_data.name_length+4]<<24)|(buffer[4+meta_data.name_length+5]<<16)|(buffer[4+meta_data.name_length+6]<<8)|(buffer[4+meta_data.name_length+7]);		
+		meta_data.last_edited=(buffer[4+meta_data.name_length+8]<<24)|(buffer[4+meta_data.name_length+9]<<16)|(buffer[4+meta_data.name_length+10]<<8)|(buffer[4+meta_data.name_length+11]);
+		meta_data.created_at=(buffer[4+meta_data.name_length+12]<<24)|(buffer[4+meta_data.name_length+13]<<16)|(buffer[4+meta_data.name_length+14]<<8)|(buffer[4+meta_data.name_length+15]);
+		meta_data.number_of_layers=(buffer[4+meta_data.name_length+16]<<24)|(buffer[4+meta_data.name_length+17]<<16)|(buffer[4+meta_data.name_length+6]<<18)|(buffer[4+meta_data.name_length+19]);
+		int offset=4+meta_data.name_length+20;
+
+		layers.reserve(meta_data.number_of_layers);
+		for(int i=0; i<meta_data.number_of_layers; i++){
+			layers.emplace_back((unsigned char*)(str_buffer.substr(offset+(i*meta_data.width*meta_data.height), meta_data.width*meta_data.height).c_str()), meta_data.width, meta_data.height);
+		}
+	}else{
+		layers.emplace_back(path);
+	}
 }
 
 Image::~Image(){
 
 }
 
-//Uses the image_path as standard
-void Image::save(string path=NULL){
+/*
+Image format. File extension:.kgp
+----META DATA----
+int name_length;
+char* name;
+int width;
+int height;
+int last_edited; //Unix epoch standard
+int created_at;
+int number_of_layers;
 
+----LAYERS----
+unsigned char* data; //Not compressed or anything
+
+*/
+
+//Uses the image_path as standard
+void Image::save(string path=""){
+	MetaData write_meta_data;
+	write_meta_data.name_length=path.length();
+	write_meta_data.name=(char*)path.c_str();
+	write_meta_data.last_edited=(unsigned long long int)time(0);
+	write_meta_data.created_at=(meta_data.created_at)?(meta_data.created_at):((unsigned long long int)time(0));
+	write_meta_data.number_of_layers=layers.size();
+
+	string file_path=(path!="")?(path):(image_path);
+
+	ofstream file(file_path, ofstream::out|ofstream::binary);
+	file.write((const char*)&write_meta_data, sizeof(write_meta_data));
+	for(int i=0; i<layers.size(); i++){
+		auto write_data=layers[i].get_data();
+		file.write((const char*)&write_data, sizeof(write_data));
+	}
+	file.close();
+	
+	//Add methods to layers and image that can create a blank layer with a width and height
 }
 
 void Image::export_png(string export_path){
@@ -37,11 +102,27 @@ void Image::export_png(string export_path){
 }
 
 void Image::export_jpg(string export_path){
+	vector<vector<unsigned int>> new_data;
+	for(int i=0; i<layers.size(); i++){
+		vector<vector<unsigned int>> layer_data=layers[i].get_data();
+		for(int x=0; x<layer_data.size(); x++){
+			for(int y=0; y<layer_data[x].size(); y++){
+				if((layer_data[x][y]<<24)>>24<255){
+					new_data[x][y]=layer_data[x][y];
+				}
+			}
+		}
+	}
+	char* final_data;
+	for(int x=0; x<new_data.size(); x++){
+		strcat(final_data, (char*)new_data[x].data());
+	}
 
+	stbi_write_jpg(export_path.c_str(), new_data.size(), new_data[0].size(), 0, (const void*)final_data, 100);
 }
 
 void Image::new_layer(){
-	layers.emplace_back();
+	layers.emplace_back(width, height);
 }
 
 void Image::delete_layer(int layer_number){

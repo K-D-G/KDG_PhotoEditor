@@ -15,7 +15,8 @@ namespace KDG_PhotoEditor{
 		int width, height, channels;
 	public:
 		Layer(std::string file_path);
-		Layer();
+		Layer(unsigned char* d, int w, int h);
+		Layer(int w, int h);
 		~Layer();
 
 		inline std::vector<std::vector<unsigned int>> get_data(){return data;}

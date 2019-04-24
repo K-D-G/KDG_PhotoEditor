@@ -5,10 +5,40 @@
 #include <vector>
 #include <stack>
 #include <algorithm>
+#include <time.h>
+#include <fstream>
+#include <sys/stat.h>
 
 namespace KDG_PhotoEditor{
+	/*
+	Image format. File extension: .kgp
+	----META DATA----
+	int name_length;
+	char* name;
+	int width;
+	int height;
+	int last_edited; //Unix epoch standard
+	int created_at;
+	int number_of_layers;
+
+	----LAYERS----
+	unsigned char* data; //Not compressed or anything
+
+	*/
+
+	struct MetaData{
+		int name_length;
+		char* name;
+		int width;
+		int height;
+		unsigned long long int last_edited;
+		unsigned long long int created_at;
+		int number_of_layers;
+	};
+
 	class Image{
 	private:
+		MetaData meta_data;
 		int width, height;
 		int channels;
 

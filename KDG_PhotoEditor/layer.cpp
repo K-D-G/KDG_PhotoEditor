@@ -16,9 +16,36 @@ Layer::Layer(string file_path){
 	}
 	original_data=data;
 }
-Layer::Layer(){
-	
+
+Layer::Layer(unsigned char* d, int w, int h){
+	width=w;
+	height=h;
+	data.reserve(width);
+	for(int i=0; i<width; i++){
+		vector<unsigned int> temp;
+		temp.reserve(height);
+		for(int j=0; j<height; j++){
+			temp.emplace_back((d[i*j]<<24)|(d[i*j+1]<<16)|(d[i*j+2])<<8|(d[i*j+3]));
+		}
+		data.emplace_back(temp);
+	}
+	original_data=data;
 }
+
+Layer::Layer(int w, int h){
+	width=w;
+	height=h;
+	data.reserve(width);
+	for(int i=0; i<width; i++){
+		vector<unsigned int> temp;
+		for(int j=0; j<height; j++){
+			temp.emplace_back(0);
+		}
+		data.emplace_back(temp);
+	}
+	original_data=data;
+}
+
 Layer::~Layer(){
 
 }
