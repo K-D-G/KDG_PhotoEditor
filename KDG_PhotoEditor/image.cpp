@@ -43,22 +43,6 @@ Image::~Image(){
 
 }
 
-/*
-Image format. File extension:.kgp
-----META DATA----
-int name_length;
-char* name;
-int width;
-int height;
-int last_edited; //Unix epoch standard
-int created_at;
-int number_of_layers;
-
-----LAYERS----
-unsigned char* data; //Not compressed or anything
-
-*/
-
 //Uses the image_path as standard
 void Image::save(string path=""){
 	MetaData write_meta_data;

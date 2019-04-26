@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -22,13 +22,14 @@
     <ClCompile Include="image.cpp" />
     <ClCompile Include="KDG_PhotoEditor.cpp" />
     <ClCompile Include="layer.cpp" />
-    <ClCompile Include="stb_image.cpp" />
+    <ClCompile Include="external_libraries.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="font.h" />
     <ClInclude Include="image.h" />
     <ClInclude Include="KDG_PhotoEditor.h" />
     <ClInclude Include="layer.h" />
+    <ClInclude Include="preprocessor_definitions.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -88,7 +89,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Kieran\Desktop\C++\external_libraries\stb_image;C:\Users\Kieran\Desktop\C++\external_libraries\wxWidgets-3.1.2\lib\vc_dll\mswud;C:\Users\Kieran\Desktop\C++\external_libraries\wxWidgets-3.1.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Kieran\Desktop\C++\external_libraries;C:\Users\Kieran\Desktop\C++\external_libraries\stb_image;C:\Users\Kieran\Desktop\C++\external_libraries\wxWidgets-3.1.2\lib\vc_dll\mswud;C:\Users\Kieran\Desktop\C++\external_libraries\wxWidgets-3.1.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WXUSINGDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -116,7 +117,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Kieran\Desktop\C++\external_libraries\stb_image;C:\Users\Kieran\Desktop\C++\external_libraries\wxWidgets-3.1.2\lib\vc_dll\mswu;C:\Users\Kieran\Desktop\C++\external_libraries\wxWidgets-3.1.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Kieran\Desktop\C++\external_libraries;C:\Users\Kieran\Desktop\C++\external_libraries\stb_image;C:\Users\Kieran\Desktop\C++\external_libraries\wxWidgets-3.1.2\lib\vc_dll\mswu;C:\Users\Kieran\Desktop\C++\external_libraries\wxWidgets-3.1.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WXUSINGDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>

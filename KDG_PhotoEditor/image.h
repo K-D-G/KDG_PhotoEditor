@@ -8,6 +8,7 @@
 #include <time.h>
 #include <fstream>
 #include <sys/stat.h>
+#include <functional>
 
 namespace KDG_PhotoEditor{
 	/*
@@ -25,7 +26,6 @@ namespace KDG_PhotoEditor{
 	unsigned char* data; //Not compressed or anything
 
 	*/
-
 	struct MetaData{
 		int name_length;
 		char* name;
@@ -34,6 +34,12 @@ namespace KDG_PhotoEditor{
 		unsigned long long int last_edited;
 		unsigned long long int created_at;
 		int number_of_layers;
+	};
+
+	struct UndoRedo{
+		bool redo;
+		int layer_number;
+		std::function<void(Image&)> fn;
 	};
 
 	class Image{

@@ -1,6 +1,7 @@
 #include "layer.h"
 
 using namespace KDG_PhotoEditor;
+using namespace TTFFontParser;
 using namespace std;
 
 Layer::Layer(string file_path){
@@ -234,9 +235,33 @@ void Layer::set_pixel(int x, int y, char r, char g, char b, char a){
 	data[x][y]=(r<<24)|(g<<16)|(b<<8)|a;
 }
 
+void Layer::font_parsed(void* args, void* font_data, int error){
+	current_parsed_font={args, font_data, error};
+}
+
 //X and Y is the top left coord of the text
 void Layer::add_text(string text, Font font, int x, int y){
+	//Use ttf_parser to write this function
+	string full_path=FONT_BASE_PATH;
+	full_path.append(font.name);
+	full_path.append(".ttf");
 
+	FontData font_data;
+	uint8_t condition_variable=0;
+	int8_t error=parse_file(full_path.c_str(), &font_data, &font_parsed, &condition_variable);
+
+	while(!condition_variable){
+		this_thread::sleep_for(chrono::milliseconds(1));
+	}
+
+	if(error){
+		return;
+	}
+
+	FontData* font_data=(FontData*)current_parsed_font.font_data;
+
+
+	current_parsed_font={};
 }
 
 void Layer::colour_filter(char r, char g, char b, char a){

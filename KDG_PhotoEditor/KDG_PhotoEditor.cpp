@@ -1,7 +1,5 @@
 #include "KDG_PhotoEditor.h"
 
-//using namespace KDG_PhotoEditor;
-
 IMPLEMENT_APP(PhotoEditor)
 
 bool PhotoEditor::OnInit(){
@@ -37,7 +35,7 @@ MainFrame::MainFrame(const wxString &title, const wxPoint &pos, const wxSize &si
 	menu_bar->Append(menu_file, wxT("File"));
 	SetMenuBar(menu_bar);
 
-	Maximize(); //Maximise the window	
+	Maximize(); //Maximise the window
 }
 
 void MainFrame::quit(wxCommandEvent &event){

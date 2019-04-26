@@ -6,4 +6,10 @@ namespace KDG_PhotoEditor{
 		std::string name;
 		int size;
 	};
+
+	struct FontParsedData{
+		void* args;
+		void* font_data;
+		int error;
+	};
 }

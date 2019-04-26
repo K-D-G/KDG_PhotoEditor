@@ -4,7 +4,10 @@
 #include <string>
 #include <cmath>
 #include <stb_image.h>
+#include <thread>
 #include <wx/math.h>
+#include <ttf_parser.h>
+#include "preprocessor_definitions.h"
 
 namespace KDG_PhotoEditor{
 	class Layer{
@@ -13,6 +16,10 @@ namespace KDG_PhotoEditor{
 		std::vector<std::vector<unsigned int>> data; //unsigned int because 4 bytes and we are using RGBA
 
 		int width, height, channels;
+
+		FontParsedData current_parsed_font;
+
+		void font_parsed(void* args, void* font_data, int error);
 	public:
 		Layer(std::string file_path);
 		Layer(unsigned char* d, int w, int h);
