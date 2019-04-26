@@ -248,6 +248,7 @@ void Layer::add_text(string text, Font font, int x, int y){
 
 	FontData font_data;
 	uint8_t condition_variable=0;
+	//Issue is that font_parsed function (since it is a member) automatically has this* as first arg so need to modify the library to work
 	int8_t error=parse_file(full_path.c_str(), &font_data, &font_parsed, &condition_variable);
 
 	while(!condition_variable){
@@ -259,8 +260,6 @@ void Layer::add_text(string text, Font font, int x, int y){
 	}
 
 	FontData* font_data=(FontData*)current_parsed_font.font_data;
-
-
 	current_parsed_font={};
 }
 
