@@ -239,10 +239,9 @@ void KDG_PhotoEditor::font_parsed(void* args, void* font_data, int error){
 	KDG_PhotoEditor::current_parsed_font={args, font_data, error};
 }
 
-//Add stuff for filling the text, colours etc
+//Add stuff for filling the text, colours, line thickness and stuff like that
 //X and Y is the top left coord of the text
 void Layer::add_text(string text, Font font, int x, int y){
-	//Use ttf_parser to write this function
 	string full_path=FONT_BASE_PATH;
 	full_path.append(font.name);
 	full_path.append(".ttf");
@@ -273,13 +272,14 @@ void Layer::add_text(string text, Font font, int x, int y){
 	for(int i=0; i<glyphs.size(); i++){
 		for(int j=0; j<glyphs[i].path_list.size(); j++){
 			for(int k=0; k<glyphs[i].path_list[j].curves.size(); k++){
+				vector<KDG_PhotoEditor::float_v2> points;
 				if(glyphs[i].path_list[j].curves[k].is_curve){
-					
+					points=bezier_bresenham_algorithm(glyphs[i].path_list[j].curves[k].p0.x+x, glyphs[i].path_list[j].curves[k].p0.y+y, glyphs[i].path_list[j].curves[k].p1.x+x, glyphs[i].path_list[j].curves[k].p1.y+y, glyphs[i].path_list[j].curves[k].p2.x+x, glyphs[i].path_list[j].curves[k].p2.y+y);
 				}else{
-					vector<KDG_PhotoEditor::float_v2> points=bresenham_algorithm(glyphs[i].path_list[j].curves[k].p0.x+x, glyphs[i].path_list[j].curves[k].p0.y+y, glyphs[i].path_list[j].curves[k].p2.x+x, glyphs[i].path_list[j].curves[k].p2.y+y);
-					for(int p=0; p<points.size(); p++){
-						set_pixel((int)points[p].x, (int)points[p].y, 0, 0, 0, 0);
-					}
+					points=bresenham_algorithm(glyphs[i].path_list[j].curves[k].p0.x+x, glyphs[i].path_list[j].curves[k].p0.y+y, glyphs[i].path_list[j].curves[k].p2.x+x, glyphs[i].path_list[j].curves[k].p2.y+y);
+				}
+				for(int p=0; p<points.size(); p++){
+					set_pixel((int)points[p].x, (int)points[p].y, 0, 0, 0, 0);
 				}
 			}
 		}
