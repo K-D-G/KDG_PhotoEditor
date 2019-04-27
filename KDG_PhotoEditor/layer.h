@@ -1,5 +1,7 @@
 #pragma once
 #include "font.h"
+#include "util.h"
+#include "preprocessor_definitions.h"
 #include <vector>
 #include <string>
 #include <cmath>
@@ -7,9 +9,11 @@
 #include <thread>
 #include <wx/math.h>
 #include <ttf_parser.h>
-#include "preprocessor_definitions.h"
 
 namespace KDG_PhotoEditor{
+	FontParsedData current_parsed_font;
+	void font_parsed(void* args, void* font_data, int error);
+
 	class Layer{
 	private:
 		std::vector<std::vector<unsigned int>> original_data;
@@ -17,9 +21,7 @@ namespace KDG_PhotoEditor{
 
 		int width, height, channels;
 
-		FontParsedData current_parsed_font;
-
-		void font_parsed(void* args, void* font_data, int error);
+		FontParsedData current_font;
 	public:
 		Layer(std::string file_path);
 		Layer(unsigned char* d, int w, int h);

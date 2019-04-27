@@ -235,10 +235,11 @@ void Layer::set_pixel(int x, int y, char r, char g, char b, char a){
 	data[x][y]=(r<<24)|(g<<16)|(b<<8)|a;
 }
 
-void Layer::font_parsed(void* args, void* font_data, int error){
-	current_parsed_font={args, font_data, error};
+void KDG_PhotoEditor::font_parsed(void* args, void* font_data, int error){
+	KDG_PhotoEditor::current_parsed_font={args, font_data, error};
 }
 
+//Add stuff for filling the text, colours etc
 //X and Y is the top left coord of the text
 void Layer::add_text(string text, Font font, int x, int y){
 	//Use ttf_parser to write this function
@@ -248,19 +249,42 @@ void Layer::add_text(string text, Font font, int x, int y){
 
 	FontData font_data;
 	uint8_t condition_variable=0;
-	//Issue is that font_parsed function (since it is a member) automatically has this* as first arg so need to modify the library to work
-	int8_t error=parse_file(full_path.c_str(), &font_data, &font_parsed, &condition_variable);
+	int8_t error=parse_file(full_path.c_str(), &font_data, &KDG_PhotoEditor::font_parsed, &condition_variable);
 
-	while(!condition_variable){
+	while(!condition_variable&&!KDG_PhotoEditor::current_parsed_font.args){
 		this_thread::sleep_for(chrono::milliseconds(1));
 	}
 
-	if(error){
+	if(error||KDG_PhotoEditor::current_parsed_font.error){
 		return;
 	}
 
-	FontData* font_data=(FontData*)current_parsed_font.font_data;
-	current_parsed_font={};
+	FontData* font_data=(FontData*)KDG_PhotoEditor::current_parsed_font.font_data;
+
+	KDG_PhotoEditor::current_parsed_font={};
+
+	//Assuming with the ttf FontData that you put your character into the glyph map and then put that into the
+	//glyphs structure and then you have the glyph
+	vector<Glyph> glyphs;
+	for(int i=0; i<text.length(); i++){
+		glyphs.push_back(font_data.glyphs[font_data.glyph_map[(uint32_t)(text.c_str()[i])]]);
+	}
+
+	for(int i=0; i<glyphs.size(); i++){
+		for(int j=0; j<glyphs[i].path_list.size(); j++){
+			for(int k=0; k<glyphs[i].path_list[j].curves.size(); k++){
+				if(glyphs[i].path_list[j].curves[k].is_curve){
+					
+				}else{
+					vector<KDG_PhotoEditor::float_v2> points=bresenham_algorithm(glyphs[i].path_list[j].curves[k].p0.x+x, glyphs[i].path_list[j].curves[k].p0.y+y, glyphs[i].path_list[j].curves[k].p2.x+x, glyphs[i].path_list[j].curves[k].p2.y+y);
+					for(int p=0; p<points.size(); p++){
+						set_pixel((int)points[p].x, (int)points[p].y, 0, 0, 0, 0);
+					}
+				}
+			}
+		}
+	}
+
 }
 
 void Layer::colour_filter(char r, char g, char b, char a){

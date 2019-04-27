@@ -30,6 +30,7 @@
     <ClInclude Include="KDG_PhotoEditor.h" />
     <ClInclude Include="layer.h" />
     <ClInclude Include="preprocessor_definitions.h" />
+    <ClInclude Include="util.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
