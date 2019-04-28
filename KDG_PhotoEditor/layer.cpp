@@ -239,8 +239,7 @@ void KDG_PhotoEditor::font_parsed(void* args, void* font_data, int error){
 	KDG_PhotoEditor::current_parsed_font={args, font_data, error};
 }
 
-//Add stuff for filling the text, colours, line thickness and stuff like that
-//X and Y is the top left coord of the text
+//x and y is the top left coord of the text
 void Layer::add_text(string text, Font font, int x, int y){
 	string full_path=FONT_BASE_PATH;
 	full_path.append(font.name);
@@ -272,14 +271,29 @@ void Layer::add_text(string text, Font font, int x, int y){
 	for(int i=0; i<glyphs.size(); i++){
 		for(int j=0; j<glyphs[i].path_list.size(); j++){
 			for(int k=0; k<glyphs[i].path_list[j].curves.size(); k++){
+				//May need to multiply original start points by the meta data unitsPerEm
 				vector<KDG_PhotoEditor::float_v2> points;
 				if(glyphs[i].path_list[j].curves[k].is_curve){
-					points=bezier_bresenham_algorithm(glyphs[i].path_list[j].curves[k].p0.x+x, glyphs[i].path_list[j].curves[k].p0.y+y, glyphs[i].path_list[j].curves[k].p1.x+x, glyphs[i].path_list[j].curves[k].p1.y+y, glyphs[i].path_list[j].curves[k].p2.x+x, glyphs[i].path_list[j].curves[k].p2.y+y);
+					points=bezier_bresenham_algorithm((glyphs[i].path_list[j].curves[k].p0.x+x)*font.size, (glyphs[i].path_list[j].curves[k].p0.y+y)*font.size, (glyphs[i].path_list[j].curves[k].p1.x+x)*font.size, (glyphs[i].path_list[j].curves[k].p1.y+y)*font.size, (glyphs[i].path_list[j].curves[k].p2.x+x)*font.size, (glyphs[i].path_list[j].curves[k].p2.y+y)*font.size);
 				}else{
-					points=bresenham_algorithm(glyphs[i].path_list[j].curves[k].p0.x+x, glyphs[i].path_list[j].curves[k].p0.y+y, glyphs[i].path_list[j].curves[k].p2.x+x, glyphs[i].path_list[j].curves[k].p2.y+y);
+					points=bresenham_algorithm((glyphs[i].path_list[j].curves[k].p0.x+x)*font.size, (glyphs[i].path_list[j].curves[k].p0.y+y)*font.size, (glyphs[i].path_list[j].curves[k].p2.x+x)*font.size, (glyphs[i].path_list[j].curves[k].p2.y+y)*font.size);
 				}
-				for(int p=0; p<points.size(); p++){
-					set_pixel((int)points[p].x, (int)points[p].y, 0, 0, 0, 0);
+
+				if(font.colour_fill){
+					for(int p=0; p<points.size(); p++){
+						set_pixel((int)points[p].x, (int)points[p].y, ((char)font.colour_fill>>24), (((char)font.colour_fill<<8)>>24), (((char)font.colour_fill<<16)>>24), (((char)font.colour_fill<<24)>>24));
+						for(int X=points[p].x; X<(points[p].x+font.size)-(points[p].x-x); X++){
+							set_pixel(X, points[p].y, ((char)font.colour_fill>>24), (((char)font.colour_fill<<8)>>24), (((char)font.colour_fill<<16)>>24), (((char)font.colour_fill<<24)>>24));
+						}
+					}
+				}
+				if(font.colour_border){
+					for(int p=0; p<points.size(); p++){
+						set_pixel((int)points[p].x, (int)points[p].y, ((char)font.colour_border>>24), (((char)font.colour_border<<8)>>24), (((char)font.colour_border<<16)>>24), (((char)font.colour_border<<24)>>24));
+						for(int X=points[p].x; X<points[p].x+font.border_thickness; X++){
+							set_pixel(X, points[p].y, ((char)font.colour_border>>24), (((char)font.colour_border<<8)>>24), (((char)font.colour_border<<16)>>24), (((char)font.colour_border<<24)>>24));
+						}
+					}
 				}
 			}
 		}

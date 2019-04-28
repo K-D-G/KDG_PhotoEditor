@@ -35,6 +35,7 @@ namespace KDG_PhotoEditor{
 		return result;
 	}
 
+	//Help from:http://members.chello.at/~easyfilter/bresenham.html
 	std::vector<float_v2> bezier_bresenham_algorithm(int x0, int y0, int x1, int y1, int x2, int y2){
 		std::vector<float_v2> result;
 		int sx=x2-x1;
