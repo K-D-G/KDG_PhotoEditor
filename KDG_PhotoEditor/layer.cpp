@@ -298,7 +298,6 @@ void Layer::add_text(string text, Font font, int x, int y){
 			}
 		}
 	}
-
 }
 
 void Layer::colour_filter(char r, char g, char b, char a){
@@ -332,4 +331,20 @@ void Layer::crop(int lmi, int rmi, int tmi, int bmi){
 	width=new_width;
 	height=new_height;
 	data=new_data;
+}
+
+void Layer::undo(){
+
+}
+
+void Layer::redo(){
+
+}
+
+void Layer::push_undo(){
+
+}
+
+void Layer::push_redo(){
+
 }

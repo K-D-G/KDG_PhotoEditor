@@ -36,12 +36,6 @@ namespace KDG_PhotoEditor{
 		int number_of_layers;
 	};
 
-	struct UndoRedo{
-		bool redo;
-		int layer_number;
-		std::function<void(Image&)> fn;
-	};
-
 	class Image{
 	private:
 		MetaData meta_data;
@@ -50,10 +44,13 @@ namespace KDG_PhotoEditor{
 
 		std::vector<Layer> layers;
 
-		std::stack<std::string> undo_stack; //The string in here tells us what to do (the opposite of what was done previously) so we just analyse and run the function. Using scanf
-		std::stack<std::string> redo_stack; //Also add an option to the functions that asks if they should be recorded
+		std::stack<int> undo_stack; //List of layer numbers that you just call undo on with the layer number
+		std::stack<int> redo_stack; //Ditto but with redo
 
 		std::string image_path;
+
+		void push_undo(int layer_number);
+		void push_redo(int layer_number);
 	public:
 		Image(std::string path);
 		~Image();

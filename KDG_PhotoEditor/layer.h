@@ -39,5 +39,10 @@ namespace KDG_PhotoEditor{
 		void add_text(std::string text, Font font, int x, int y); //X and Y is the top left coord of the text
 		void colour_filter(char r, char g, char b, char a); //Remember each pixel will be multiplied with the values
 		void crop(int lmi, int rmi, int tmi, int bmi);
+
+		void undo();
+		void redo();
+		void push_undo();
+		void push_redo();
 	};
 }
