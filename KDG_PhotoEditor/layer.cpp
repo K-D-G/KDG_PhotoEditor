@@ -4,6 +4,7 @@ using namespace KDG_PhotoEditor;
 using namespace TTFFontParser;
 using namespace std;
 
+//Constructor reads data using stb_image
 Layer::Layer(string file_path){
 	unsigned char* temp_data=stbi_load(file_path.c_str(), &width, &height, &channels, STBI_rgb_alpha);
 	data.reserve(width);
@@ -18,6 +19,7 @@ Layer::Layer(string file_path){
 	original_data=data;
 }
 
+//Create a layer using some data in a char array
 Layer::Layer(unsigned char* d, int w, int h){
 	width=w;
 	height=h;
@@ -33,6 +35,7 @@ Layer::Layer(unsigned char* d, int w, int h){
 	original_data=data;
 }
 
+//Constructor for creating a blank layer
 Layer::Layer(int w, int h){
 	width=w;
 	height=h;
@@ -48,18 +51,7 @@ Layer::Layer(int w, int h){
 }
 
 Layer::~Layer(){
-	string delete_folder_path=undo_stack.top();
-	delete_folder_path.substr(0, delete_folder_path.rfind("/")); //Removes file name
-	delete_folder_path.substr(0, delete_folder_path.rfind("/")); //Removes version
-	delete_folder_path.substr(0, delete_folder_path.rfind("/")); //Removes undo or redo
 
-#ifdef _WIN32
-	system(strcat((char*)"rmdir", delete_folder_path.c_str()));
-#endif
-
-#if defined(__APPLE__)||defined(__linux__)
-	system(strcat((char*)"rm -rf", delete_folder_path.c_str()));
-#endif
 }
 
 void Layer::rotate(float degrees, int centrex, int centrey){
@@ -93,6 +85,8 @@ void Layer::scale(float sx, float sy, string type){
 
 	if(type=="linear_interpolation"){
 		//Linear interpolation?
+		//Similar to nearest neighbour however it uses a weighted sum
+		//With the next pixel along
 		for(int x=0; x<width; x++){
 			for(int y=0; y<height; y++){
 				new_data[x*new_width][y*new_height]=data[x][y];
@@ -113,6 +107,7 @@ void Layer::scale(float sx, float sy, string type){
 
 	}else if(type=="nearest_neighbour"){
 		//Loop through all the pixels in the original image
+		//And create new pixels each side of it the same colour
 		for(int x=0; x<width; x++){
 			for(int y=0; y<height; y++){
 				for(int i=0; i<sy; i++){
@@ -256,6 +251,7 @@ void Layer::add_text(string text, Font font, int x, int y){
 	full_path.append(font.name);
 	full_path.append(".ttf");
 
+	//Read font data in
 	FontData font_data;
 	uint8_t condition_variable=0;
 	int8_t error=parse_file(full_path.c_str(), &font_data, &KDG_PhotoEditor::font_parsed, &condition_variable);
@@ -283,6 +279,8 @@ void Layer::add_text(string text, Font font, int x, int y){
 		for(int j=0; j<glyphs[i].path_list.size(); j++){
 			for(int k=0; k<glyphs[i].path_list[j].curves.size(); k++){
 				//May need to multiply original start points by the meta data unitsPerEm
+				//Get the points using bezier bresenham or normal bresenham
+				//Depending on what the data says it is
 				vector<KDG_PhotoEditor::float_v2> points;
 				if(glyphs[i].path_list[j].curves[k].is_curve){
 					points=bezier_bresenham_algorithm((glyphs[i].path_list[j].curves[k].p0.x+x)*font.size, (glyphs[i].path_list[j].curves[k].p0.y+y)*font.size, (glyphs[i].path_list[j].curves[k].p1.x+x)*font.size, (glyphs[i].path_list[j].curves[k].p1.y+y)*font.size, (glyphs[i].path_list[j].curves[k].p2.x+x)*font.size, (glyphs[i].path_list[j].curves[k].p2.y+y)*font.size);
@@ -290,6 +288,7 @@ void Layer::add_text(string text, Font font, int x, int y){
 					points=bresenham_algorithm((glyphs[i].path_list[j].curves[k].p0.x+x)*font.size, (glyphs[i].path_list[j].curves[k].p0.y+y)*font.size, (glyphs[i].path_list[j].curves[k].p2.x+x)*font.size, (glyphs[i].path_list[j].curves[k].p2.y+y)*font.size);
 				}
 
+				//Fill the text with the correct colour
 				if(font.colour_fill){
 					for(int p=0; p<points.size(); p++){
 						set_pixel((int)points[p].x, (int)points[p].y, ((char)font.colour_fill>>24), (((char)font.colour_fill<<8)>>24), (((char)font.colour_fill<<16)>>24), (((char)font.colour_fill<<24)>>24));
@@ -298,6 +297,8 @@ void Layer::add_text(string text, Font font, int x, int y){
 						}
 					}
 				}
+
+				//Make the border of the text 
 				if(font.colour_border){
 					for(int p=0; p<points.size(); p++){
 						set_pixel((int)points[p].x, (int)points[p].y, ((char)font.colour_border>>24), (((char)font.colour_border<<8)>>24), (((char)font.colour_border<<16)>>24), (((char)font.colour_border<<24)>>24));
@@ -312,6 +313,8 @@ void Layer::add_text(string text, Font font, int x, int y){
 }
 
 void Layer::colour_filter(char r, char g, char b, char a){
+	//Loop through all of the data and then multiply each of the components
+	//And then put it back into the correct part of the array
 	for(int x=0; x<width; x++){
 		for(int y=0; y<height; y++){
 			char rcomponent=r*((char)data[x][y]>>24);
@@ -343,26 +346,6 @@ void Layer::crop(int lmi, int rmi, int tmi, int bmi){
 	height=new_height;
 	data=new_data;
 }
-
-/*
-How the undo/redo system works
-
-Hidden folder called .cache stores all the undo redo stuff
-Then inside the folder there are 2 folders called undo and redo
-Then inside them there are version folders for how far back the undo or redo
-Inside them folders there are jpeg files for each of the layers
-.cache folder is stored in the local directory for the image it is deleted when the program shuts down 
-
-.cache
--undo
--version_0
--layer_0.jpg
--layer_1.jpg
--redo
--version_9
--layer_0.jpg
--layer_1.jpg
-*/
 
 void Layer::undo(){
 	redo_stack.push(undo_stack.top());

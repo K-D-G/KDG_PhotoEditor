@@ -46,6 +46,25 @@ namespace KDG_PhotoEditor{
 		void colour_filter(char r, char g, char b, char a); //Remember each pixel will be multiplied with the values
 		void crop(int lmi, int rmi, int tmi, int bmi);
 
+		/*
+		How the undo/redo system works
+
+		Hidden folder called .cache stores all the undo redo stuff
+		Then inside the folder there are 2 folders called undo and redo
+		Then inside them there are version folders for how far back the undo or redo
+		Inside them folders there are jpeg files for each of the layers
+		.cache folder is stored in the local directory for the image it is deleted when the program shuts down 
+
+		.cache
+		-undo
+		-version_0
+		-layer_0.jpg
+		-layer_1.jpg
+		-redo
+		-version_9
+		-layer_0.jpg
+		-layer_1.jpg
+		*/
 		void undo();
 		void redo();
 		void push_undo(std::string path);

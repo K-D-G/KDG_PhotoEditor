@@ -3,6 +3,8 @@
 #include <assert.h>
 
 namespace KDG_PhotoEditor{
+	//Modified version of the float_v2 from the ttf parser library.
+	//The only difference is adding a constructor this is so we can use emplace_back
 	struct float_v2{
 		float x, y;
 
@@ -10,6 +12,9 @@ namespace KDG_PhotoEditor{
 		
 		}
 	};
+
+	//2 variations of the bresenham algorithm for finding all points on a line
+	//This is used to draw the fonts on images
 
 	//Modified version of code from:https://www.thecrazyprogrammer.com/2017/01/bresenhams-line-drawing-algorithm-c-c.html
 	std::vector<float_v2> bresenham_algorithm(int x0, int y0, int x1, int y1){

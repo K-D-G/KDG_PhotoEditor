@@ -1,5 +1,7 @@
 #pragma once
 
+//The font base path is used to access the fonts that are
+//in OS specific locations
 #ifdef _WIN32
 #define FONT_BASE_PATH "C:/Windows/Fonts/"
 #endif

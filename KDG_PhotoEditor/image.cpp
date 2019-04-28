@@ -4,9 +4,12 @@ using namespace KDG_PhotoEditor;
 using namespace std;
 
 Image::Image(string path){
+	//Flip the backslashes to forward slashes for later use
 	while(path.find("\\")){
 		path.replace(path.find("\\"), 1, "/");
 	}
+
+	//See if the file is of our type if so read it in
 	if(path.substr(path.rfind(".")+1, 3)=="kgp"){
 		struct stat results;
 		int size;
@@ -38,12 +41,16 @@ Image::Image(string path){
 			layers.emplace_back((unsigned char*)(str_buffer.substr(offset+(i*meta_data.width*meta_data.height), meta_data.width*meta_data.height).c_str()), meta_data.width, meta_data.height);
 		}
 	}else{
+		//Construct a layer with the path this will use the
+		//constructor which uses stb_image to load in image data
 		layers.emplace_back(path);
 	}
 }
 
 Image::~Image(){
-	//Deleting cache folder
+	//Deleting the cache folder so it doesn't take up space on the users machine
+	//Since I am using the system function preprocessor statements
+	//As the system command for deleting folders is OS specific
 	string delete_folder_path=image_path;
 	delete_folder_path.substr(0, delete_folder_path.rfind("/"));
 #ifdef _WIN32
@@ -57,6 +64,7 @@ Image::~Image(){
 
 //Uses the image_path as standard
 void Image::save(string path=""){
+	//Create the meta data
 	MetaData write_meta_data;
 	write_meta_data.name_length=path.length();
 	write_meta_data.name=(char*)path.c_str();
@@ -64,8 +72,10 @@ void Image::save(string path=""){
 	write_meta_data.created_at=(meta_data.created_at)?(meta_data.created_at):((unsigned long long int)time(0));
 	write_meta_data.number_of_layers=layers.size();
 
+	//Determin which path we are using
 	string file_path=(path!="")?(path):(image_path);
 
+	//Write the data to the file and close it
 	ofstream file(file_path, ofstream::out|ofstream::binary);
 	file.write((const char*)&write_meta_data, sizeof(write_meta_data));
 	for(int i=0; i<layers.size(); i++){
@@ -73,9 +83,22 @@ void Image::save(string path=""){
 		file.write((const char*)&write_data, sizeof(write_data));
 	}
 	file.close();
-	
-	//Add methods to layers and image that can create a blank layer with a width and height
+
+	//Deleting the cache folder
+	string delete_folder_path=image_path;
+	delete_folder_path.substr(0, delete_folder_path.rfind("/"));
+#ifdef _WIN32
+	system(strcat((char*)"rmdir", delete_folder_path.c_str()));
+#endif
+
+#if defined(__APPLE__)||defined(__linux__)
+	system(strcat((char*)"rm -rf", delete_folder_path.c_str()));
+#endif
 }
+
+//Following functions convert the data into a
+//unsigned char* array and then use stb_image to 
+//write the data to a png or jpeg file
 
 void Image::export_png(string export_path){
 	vector<vector<unsigned int>> new_data;
@@ -117,28 +140,34 @@ void Image::export_jpg(string export_path){
 	stbi_write_jpg(export_path.c_str(), new_data.size(), new_data[0].size(), 0, (const void*)final_data, 100);
 }
 
+//Creates a blank new layer
 void Image::new_layer(){
 	layers.emplace_back(width, height);
 }
 
+//Deletes a layer PERMANENTLY
 void Image::delete_layer(int layer_number){
 	layers.erase(layers.begin()+layer_number);
 }
 
+//Swap the layer order so they are rendered in a different order
 void Image::swap_layers(int current_layer_number, int next_layer_number){
 	swap(layers[current_layer_number], layers[next_layer_number]);
 }
 
+//Rotate a layer using degrees NOT radians
 void Image::rotate(int layer_number, float degrees, int centrex, int centrey){
 	layers[layer_number].rotate(degrees, centrex, centrey);
 	push_undo();
 }
 
+//Scale a layer using nearest neighbour or linear interpolation
 void Image::scale(int layer_number, float sx, float sy, string type){
 	layers[layer_number].scale(sx, sy, type);
 	push_undo();
 }
 
+//Translate a layer so it appears in a different location
 void Image::translate(int layer_number, int xmov, int ymov, bool make_transparent){
 	layers[layer_number].translate(xmov, ymov, make_transparent);
 	push_undo();
@@ -150,33 +179,40 @@ void Image::reflect(int layer_number, char var_name, int val, bool left_or_top){
 	push_undo();
 }
 
+//Blur a layer using a gaussian blur
 void Image::blur(int layer_number, int topleftx, int toplefty, int w, int h){
 	layers[layer_number].blur(topleftx, toplefty, w, h);
 	push_undo();
 }
 
+//Change the colour of a pixel
+//Doesn't do a push_undo as it would mean that there would be alot
+//of copies
 void Image::set_pixel(int layer_number, int x, int y, char r, char g, char b, char a){
 	layers[layer_number].set_pixel(x, y, r, g, b, a);
-	push_undo();
 }
 
-//X and Y is the top left coord of the text
+//x and y is the top left coord of the text
 void Image::add_text(int layer_number, string text, Font font, int x, int y){
 	layers[layer_number].add_text(text, font, x, y);
 	push_undo();
 }
 
+//Image that creates a filter (basically each layer is multiplied by some values)
 //Remember each pixel will be multiplied with the values
 void Image::colour_filter(int layer_number, char r, char g, char b, char a){
 	layers[layer_number].colour_filter(r, g, b, a);
 	push_undo();
 }
 
+//Remove a part of an image
 void Image::crop(int layer_number, int lmi, int rmi, int tmi, int bmi){
 	layers[layer_number].crop(lmi, rmi, tmi, bmi);
 	push_undo();
 }
 
+
+//Undo an redo system explained in the .h file
 void Image::undo(){
 	for(int i=0; i<layers.size(); i++){
 		layers[i].undo();
