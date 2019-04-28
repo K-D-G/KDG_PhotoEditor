@@ -119,70 +119,78 @@ void Image::swap_layers(int current_layer_number, int next_layer_number){
 
 void Image::rotate(int layer_number, float degrees, int centrex, int centrey){
 	layers[layer_number].rotate(degrees, centrex, centrey);
-	push_undo(layer_number);
+	push_undo();
 }
 
 void Image::scale(int layer_number, float sx, float sy, string type){
 	layers[layer_number].scale(sx, sy, type);
-	push_undo(layer_number);
+	push_undo();
 }
 
 void Image::translate(int layer_number, int xmov, int ymov, bool make_transparent){
 	layers[layer_number].translate(xmov, ymov, make_transparent);
-	push_undo(layer_number);
+	push_undo();
 }
 
 //Line meaning something like x=4 or y=2, the bool means are those sides the ones being reflected
 void Image::reflect(int layer_number, char var_name, int val, bool left_or_top){
 	layers[layer_number].reflect(var_name, val, left_or_top);
-	push_undo(layer_number);
+	push_undo();
 }
 
 void Image::blur(int layer_number, int topleftx, int toplefty, int w, int h){
 	layers[layer_number].blur(topleftx, toplefty, w, h);
-	push_undo(layer_number);
+	push_undo();
 }
 
 void Image::set_pixel(int layer_number, int x, int y, char r, char g, char b, char a){
 	layers[layer_number].set_pixel(x, y, r, g, b, a);
-	push_undo(layer_number);
+	push_undo();
 }
 
 //X and Y is the top left coord of the text
 void Image::add_text(int layer_number, string text, Font font, int x, int y){
 	layers[layer_number].add_text(text, font, x, y);
-	push_undo(layer_number);
+	push_undo();
 }
 
 //Remember each pixel will be multiplied with the values
 void Image::colour_filter(int layer_number, char r, char g, char b, char a){
 	layers[layer_number].colour_filter(r, g, b, a);
-	push_undo(layer_number);
+	push_undo();
 }
 
 void Image::crop(int layer_number, int lmi, int rmi, int tmi, int bmi){
 	layers[layer_number].crop(lmi, rmi, tmi, bmi);
-	push_undo(layer_number);
+	push_undo();
 }
 
 void Image::undo(){
-	redo_stack.push(undo_stack.top());
-	layers[undo_stack.top()].undo();
+	for(int i=0; i<layers.size(); i++){
+		layers[i].undo();
+	}
 	undo_stack.pop();
+	push_redo();
 }
 
 void Image::redo(){
-	undo_stack.push(redo_stack.top());
-	layers[redo_stack.top()].redo();
+	for(int i=0; i<layers.size(); i++){
+		layers[i].redo();
+	}
 	redo_stack.pop();
+	push_undo();
 }
 
-void Image::push_undo(int layer_number){
-	layers[layer_number].push_undo();
-	undo_stack.push(layer_number);
+void Image::push_undo(){
+	undo_stack.push(undo_stack.size());
+	for(int i=0; i<layers.size(); i++){
+		layers[i].push_undo(undo_stack.top());
+	}
 }
 
-void Image::push_redo(int layer_number){
-	layers[layer_number].push_redo();
-	redo_stack.push(layer_number);
+void Image::push_redo(){
+	redo_stack.push(redo_stack.size());
+	for(int i=0; i<layers.size(); i++){
+		layers[i].push_redo(redo_stack.top());
+	}
 }

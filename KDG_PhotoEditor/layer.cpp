@@ -341,10 +341,10 @@ void Layer::redo(){
 
 }
 
-void Layer::push_undo(){
+void Layer::push_undo(int version_number){
 
 }
 
-void Layer::push_redo(){
-
+void Layer::push_redo(int version_number){
+	
 }

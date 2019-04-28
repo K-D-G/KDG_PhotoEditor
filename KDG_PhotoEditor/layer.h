@@ -42,7 +42,7 @@ namespace KDG_PhotoEditor{
 
 		void undo();
 		void redo();
-		void push_undo();
-		void push_redo();
+		void push_undo(int version_number);
+		void push_redo(int version_number);
 	};
 }

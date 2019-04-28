@@ -44,13 +44,10 @@ namespace KDG_PhotoEditor{
 
 		std::vector<Layer> layers;
 
-		std::stack<int> undo_stack; //List of layer numbers that you just call undo on with the layer number
+		std::stack<int> undo_stack; //List of numbers that correspond to a "version" number in the cache
 		std::stack<int> redo_stack; //Ditto but with redo
 
 		std::string image_path;
-
-		void push_undo(int layer_number);
-		void push_redo(int layer_number);
 	public:
 		Image(std::string path);
 		~Image();
@@ -75,5 +72,7 @@ namespace KDG_PhotoEditor{
 	
 		void undo();
 		void redo();
+		void push_undo();
+		void push_redo();
 	};
 }
