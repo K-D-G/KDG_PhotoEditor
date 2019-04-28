@@ -48,7 +48,18 @@ Layer::Layer(int w, int h){
 }
 
 Layer::~Layer(){
+	string delete_folder_path=undo_stack.top();
+	delete_folder_path.substr(0, delete_folder_path.rfind("/")); //Removes file name
+	delete_folder_path.substr(0, delete_folder_path.rfind("/")); //Removes version
+	delete_folder_path.substr(0, delete_folder_path.rfind("/")); //Removes undo or redo
 
+#ifdef _WIN32
+	system(strcat((char*)"rmdir", delete_folder_path.c_str()));
+#endif
+
+#if defined(__APPLE__)||defined(__linux__)
+	system(strcat((char*)"rm -rf", delete_folder_path.c_str()));
+#endif
 }
 
 void Layer::rotate(float degrees, int centrex, int centrey){
@@ -333,18 +344,75 @@ void Layer::crop(int lmi, int rmi, int tmi, int bmi){
 	data=new_data;
 }
 
-void Layer::undo(){
+/*
+How the undo/redo system works
 
+Hidden folder called .cache stores all the undo redo stuff
+Then inside the folder there are 2 folders called undo and redo
+Then inside them there are version folders for how far back the undo or redo
+Inside them folders there are jpeg files for each of the layers
+.cache folder is stored in the local directory for the image it is deleted when the program shuts down 
+
+.cache
+-undo
+-version_0
+-layer_0.jpg
+-layer_1.jpg
+-redo
+-version_9
+-layer_0.jpg
+-layer_1.jpg
+*/
+
+void Layer::undo(){
+	redo_stack.push(undo_stack.top());
+	undo_stack.pop();
+
+	unsigned char* temp_data=stbi_load((redo_stack.top()).c_str(), &width, &height, &channels, STBI_rgb_alpha);
+	data.empty();
+	data.reserve(width);
+	for(int i=0; i<width; i++){
+		vector<unsigned int> temp;
+		temp.reserve(height);
+		for(int j=0; j<height; j++){
+			temp.emplace_back((temp_data[i*j]<<24)|(temp_data[i*j+1]<<16)|(temp_data[i*j+2])<<8|(temp_data[i*j+3]));
+		}
+		data.emplace_back(temp);
+	}
+	original_data=data;
 }
 
 void Layer::redo(){
+	undo_stack.push(redo_stack.top());
+	undo_stack.pop();
 
+	unsigned char* temp_data=stbi_load((undo_stack.top()).c_str(), &width, &height, &channels, STBI_rgb_alpha);
+	data.empty();
+	for(int i=0; i<width; i++){
+		vector<unsigned int> temp;
+		temp.reserve(height);
+		for(int j=0; j<height; j++){
+			temp.emplace_back((temp_data[i*j]<<24)|(temp_data[i*j+1]<<16)|(temp_data[i*j+2])<<8|(temp_data[i*j+3]));
+		}
+		data.emplace_back(temp);
+	}
+	original_data=data;
 }
 
-void Layer::push_undo(int version_number){
-
+void Layer::push_undo(string path){
+	undo_stack.push(path);
+	char* final_data;
+	for(int x=0; x<data.size(); x++){
+		strcat(final_data, (char*)data[x].data());
+	}
+	stbi_write_jpg(path.c_str(), data.size(), data[0].size(), 0, (const void*)final_data, 100);
 }
 
-void Layer::push_redo(int version_number){
-	
+void Layer::push_redo(string path){
+	redo_stack.push(path);
+	char* final_data;
+	for(int x=0; x<data.size(); x++){
+		strcat(final_data, (char*)data[x].data());
+	}
+	stbi_write_jpg(path.c_str(), data.size(), data[0].size(), 0, (const void*)final_data, 100);
 }

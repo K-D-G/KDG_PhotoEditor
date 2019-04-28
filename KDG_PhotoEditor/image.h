@@ -9,6 +9,7 @@
 #include <fstream>
 #include <sys/stat.h>
 #include <functional>
+#include <stdio.h>
 
 namespace KDG_PhotoEditor{
 	/*

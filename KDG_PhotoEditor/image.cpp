@@ -4,6 +4,9 @@ using namespace KDG_PhotoEditor;
 using namespace std;
 
 Image::Image(string path){
+	while(path.find("\\")){
+		path.replace(path.find("\\"), 1, "/");
+	}
 	if(path.substr(path.rfind(".")+1, 3)=="kgp"){
 		struct stat results;
 		int size;
@@ -40,7 +43,16 @@ Image::Image(string path){
 }
 
 Image::~Image(){
+	//Deleting cache folder
+	string delete_folder_path=image_path;
+	delete_folder_path.substr(0, delete_folder_path.rfind("/"));
+#ifdef _WIN32
+	system(strcat((char*)"rmdir", delete_folder_path.c_str()));
+#endif
 
+#if defined(__APPLE__)||defined(__linux__)
+	system(strcat((char*)"rm -rf", delete_folder_path.c_str()));
+#endif
 }
 
 //Uses the image_path as standard
@@ -182,15 +194,37 @@ void Image::redo(){
 }
 
 void Image::push_undo(){
+	string path=image_path.substr(0, image_path.rfind("/"));
+	path.append(".cache/undo/version_");
+	string command=image_path.substr(0, image_path.rfind("/"));
+	path.append(to_string(undo_stack.size()));
+	path.append("/");
+	command.append(path);
+	system(strcat((char*)"mkdir", command.c_str()));
+	path.append("layer_");
+	
 	undo_stack.push(undo_stack.size());
+	string temp=path;
 	for(int i=0; i<layers.size(); i++){
-		layers[i].push_undo(undo_stack.top());
+		temp.append(to_string(i));
+		layers[i].push_undo(temp);
 	}
 }
 
 void Image::push_redo(){
+	string path=image_path.substr(0, image_path.rfind("/"));
+	path.append(".cache/redo/version_");
+	string command=image_path.substr(0, image_path.rfind("/"));
+	path.append(to_string(redo_stack.size()));
+	path.append("/");
+	command.append(path);
+	system(strcat((char*)"mkdir", command.c_str()));
+	path.append("layer_");
+
 	redo_stack.push(redo_stack.size());
+	string temp=path;
 	for(int i=0; i<layers.size(); i++){
-		layers[i].push_redo(redo_stack.top());
+		temp.append(to_string(i));
+		layers[i].push_redo(temp);
 	}
 }

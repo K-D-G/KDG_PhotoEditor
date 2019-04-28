@@ -3,12 +3,15 @@
 #include "util.h"
 #include "preprocessor_definitions.h"
 #include <vector>
+#include <stack>
 #include <string>
 #include <cmath>
-#include <stb_image.h>
 #include <thread>
 #include <wx/math.h>
+#include <stb_image.h>
+#include <fstream>
 #include <ttf_parser.h>
+#include <filesystem>
 
 namespace KDG_PhotoEditor{
 	FontParsedData current_parsed_font;
@@ -22,6 +25,9 @@ namespace KDG_PhotoEditor{
 		int width, height, channels;
 
 		FontParsedData current_font;
+
+		std::stack<std::string> undo_stack;
+		std::stack<std::string> redo_stack;
 	public:
 		Layer(std::string file_path);
 		Layer(unsigned char* d, int w, int h);
@@ -42,7 +48,7 @@ namespace KDG_PhotoEditor{
 
 		void undo();
 		void redo();
-		void push_undo(int version_number);
-		void push_redo(int version_number);
+		void push_undo(std::string path);
+		void push_redo(std::string path);
 	};
 }
